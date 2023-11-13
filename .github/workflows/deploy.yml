@@ -1,0 +1,62 @@
+name: 'Build & Deploy'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      
+      - name: Cache Chiban Data
+        id: cache-chiban-data
+        uses: actions/cache@v3
+        with:
+          path: data/chiban-data/
+          key: v1-chiban-data
+  
+      - name: Download Chiban Data
+        if: steps.cache-chiban-data.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ./data/chiban-data
+          curl -L 'https://www.geospatial.jp/ckan/dataset/70d19cbf-f89e-4b36-93e6-2bdece01f876/resource/32c57ff3-51ca-427b-907c-bdc9f8f98360/download/46505__2_r_2023.geojson' > ./data/chiban-data/46505__2_r_2023.geojson
+
+      - name: Run data transformation scripts
+        run: |
+          npm run download-osm
+          npm run format-chiban -- ./data/chiban-data/46505__2_r_2023.geojson
+      
+      - name: Build
+        run: |
+          cd ./frontend
+          npm ci
+          npm run build
+      
+      - name: Save build artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./frontend/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
