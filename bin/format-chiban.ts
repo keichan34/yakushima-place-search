@@ -50,8 +50,8 @@ const EXTRA_META: { [key: string]: { romaji: string, kana: string} } = {
     "kana": "ひらうち",
   },
   "志戸子": {
-    "romaji": "shitoko",
-    "kana": "しとこ",
+    "romaji": "shitogo",
+    "kana": "しとご",
   },
   "栗生": {
     "romaji": "kurio",
@@ -86,8 +86,8 @@ const EXTRA_META: { [key: string]: { romaji: string, kana: string} } = {
   // console.log(input.features.length);
 
   const chiban_meta: {
-    oazas: { [key: string]: { 
-      start: number, 
+    oazas: { [key: string]: {
+      start: number,
       end: number,
       romaji: string,
       kana: string,
@@ -118,7 +118,7 @@ const EXTRA_META: { [key: string]: { romaji: string, kana: string} } = {
     if (!FILTER_REGEX.test(chiban)) {
       continue;
     }
-    
+
     if (last_oaza !== oaza) {
       last_oaza = oaza;
       chiban_meta.oazas[oaza] = {
